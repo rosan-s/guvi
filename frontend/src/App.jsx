@@ -67,19 +67,8 @@ const getApiBase = () => {
     return "http://localhost:8000";
   }
   
-  // Use environment variable first (set by Render for production)
-  if (import.meta.env.VITE_API_BASE_URL) {
-    const apiUrl = import.meta.env.VITE_API_BASE_URL;
-    // Remove trailing slash if present
-    return apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
-  }
-  
-  // Fallback for production (should not reach here with proper Render config)
-  if (typeof window !== 'undefined') {
-    return window.location.origin;
-  }
-  
-  return "http://localhost:8000";
+  // For production (Vercel) - use relative /api path
+  return "/api";
 };
 
 const apiBase = getApiBase();
