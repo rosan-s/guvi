@@ -1,25 +1,30 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import axios from "axios";
 
 const translations = {
   en: {
-    title: "Financial Health Assessment",
-    subtitle: "Upload statements or paste data to receive insights.",
+    title: "AI-Powered Financial Health Assessment",
+    subtitle: "Upload statements or paste data to receive AI-driven insights.",
     apiKey: "API Key",
     industry: "Industry",
     upload: "Upload File",
     analyze: "Analyze",
     analyzeSample: "Analyze Sample",
     metrics: "Key Metrics",
-    recommendations: "Recommendations",
+    recommendations: "Smart Recommendations",
     flags: "Risk Flags",
     benchmarking: "Benchmarking",
     integrations: "Banking Integrations",
     credit: "Creditworthiness",
     riskScore: "Risk Score",
+    forecast: "3-Month Forecast",
+    scenarios: "Scenario Analysis",
+    anomalies: "Detected Anomalies",
+    defaultRisk: "Credit Default Risk",
+    riskFactors: "Key Risk Factors",
   },
   hi: {
-    title: "वित्तीय स्वास्थ्य मूल्यांकन",
+    title: "AI-संचालित वित्तीय स्वास्थ्य मूल्यांकन",
     subtitle: "इनसाइट्स के लिए स्टेटमेंट अपलोड करें या डेटा दें।",
     apiKey: "API कुंजी",
     industry: "उद्योग",
@@ -27,12 +32,17 @@ const translations = {
     analyze: "विश्लेषण करें",
     analyzeSample: "सैंपल विश्लेषण",
     metrics: "मुख्य मेट्रिक्स",
-    recommendations: "सिफारिशें",
+    recommendations: "स्मार्ट सिफारिशें",
     flags: "जोखिम संकेत",
     benchmarking: "बेंचमार्किंग",
     integrations: "बैंकिंग इंटीग्रेशन",
     credit: "क्रेडिट योग्यता",
     riskScore: "जोखिम स्कोर",
+    forecast: "3-मास पूर्वानुमान",
+    scenarios: "परिदृश्य विश्लेषण",
+    anomalies: "पहचाने गए विसंगतियां",
+    defaultRisk: "क्रेडिट डिफ़ॉल्ट जोखिम",
+    riskFactors: "मुख्य जोखिम कारक",
   }
 };
 
@@ -58,11 +68,13 @@ export default function App() {
   const [apiKey, setApiKey] = useState("dev-key");
   const [industry, setIndustry] = useState("Services");
   const [file, setFile] = useState(null);
+  const [fileName, setFileName] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [bankA, setBankA] = useState(null);
   const [bankB, setBankB] = useState(null);
   const [error, setError] = useState("");
+  const fileInputRef = useRef(null);
 
   const headers = { "X-API-Key": apiKey };
 
@@ -137,7 +149,27 @@ export default function App() {
           </label>
           <label>
             {t.upload}
-            <input type="file" accept=".csv,.xlsx,.xls,.pdf" onChange={(e) => setFile(e.target.files?.[0])} />
+            <div className="file-picker">
+              <button
+                type="button"
+                className="file-button"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Choose File
+              </button>
+              <span className="file-name">{fileName || "No file selected"}</span>
+              <input
+                ref={fileInputRef}
+                className="file-input"
+                type="file"
+                accept=".csv,.xlsx,.xls,.pdf"
+                onChange={(e) => {
+                  const selected = e.target.files?.[0] || null;
+                  setFile(selected);
+                  setFileName(selected?.name || "");
+                }}
+              />
+            </div>
           </label>
         </div>
         <div className="actions">
@@ -176,6 +208,78 @@ export default function App() {
               </tbody>
             </table>
           </div>
+        </section>
+      )}
+
+      {result && result.default_probability !== undefined && (
+        <section className="grid-two">
+          <div className="card">
+            <h2>{t.defaultRisk}</h2>
+            <div className="metric">
+              <span>Default Probability</span>
+              <strong>{result.default_probability?.toFixed(1)}%</strong>
+            </div>
+            <div style={{ marginTop: "12px" }}>
+              <RiskGauge risk={result.default_probability} />
+            </div>
+          </div>
+          <div className="card">
+            <h2>{t.riskFactors}</h2>
+            <ul>
+              {result.credit_risk_factors?.map((factor) => <li key={factor}>{factor}</li>)}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {result && result.forecast && result.forecast.revenue?.length > 0 && (
+        <section className="card">
+          <h2>{t.forecast}</h2>
+          <table>
+            <thead>
+              <tr><th>Period</th><th>Revenue</th><th>Expenses</th><th>Net Margin</th></tr>
+            </thead>
+            <tbody>
+              {result.forecast.revenue.map((rev, idx) => (
+                <tr key={idx}>
+                  <td>Month {idx + 1}</td>
+                  <td>{formatValue(rev)}</td>
+                  <td>{formatValue(result.forecast.expenses[idx])}</td>
+                  <td>{toPercent(result.forecast.net_margin[idx])}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
+      {result && result.scenarios && (
+        <section className="card">
+          <h2>{t.scenarios}</h2>
+          <table>
+            <thead>
+              <tr><th>Scenario</th><th>Revenue</th><th>Expenses</th><th>Net Margin</th></tr>
+            </thead>
+            <tbody>
+              {Object.entries(result.scenarios).map(([key, scenario]) => (
+                <tr key={key}>
+                  <td className={`scenario-${key}`}>{key.toUpperCase()}</td>
+                  <td>{formatValue(scenario.revenue)}</td>
+                  <td>{formatValue(scenario.expenses)}</td>
+                  <td>{toPercent(scenario.net_margin)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
+      {result && result.anomalies && result.anomalies.length > 0 && (
+        <section className="card alert-anomalies">
+          <h2>{t.anomalies}</h2>
+          <ul>
+            {result.anomalies.map((anom) => <li key={anom}>{anom}</li>)}
+          </ul>
         </section>
       )}
 
@@ -218,6 +322,27 @@ function Metric({ label, value }) {
     <div className="metric">
       <span>{label}</span>
       <strong>{formatValue(value)}</strong>
+    </div>
+  );
+}
+
+function RiskGauge({ risk }) {
+  const color = risk < 20 ? "green" : risk < 40 ? "yellow" : risk < 60 ? "orange" : "red";
+  const width = `${Math.min(risk, 100)}%`;
+  return (
+    <div style={{
+      width: "100%",
+      height: "20px",
+      backgroundColor: "#eee",
+      borderRadius: "4px",
+      overflow: "hidden",
+    }}>
+      <div style={{
+        width,
+        height: "100%",
+        backgroundColor: color,
+        transition: "width 0.3s ease",
+      }} />
     </div>
   );
 }

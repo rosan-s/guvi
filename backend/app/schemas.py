@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 import pandas as pd
 
 
@@ -26,3 +26,10 @@ class AnalysisResponse(BaseModel):
     benchmarks: Dict[str, float]
     flags: List[str]
     recommendations: List[str]
+    # Advanced AI features
+    forecast: Dict[str, List[float]] = Field(default_factory=dict)
+    anomalies: List[str] = Field(default_factory=list)
+    scenarios: Dict[str, Dict[str, Union[float, str]]] = Field(default_factory=dict)
+    default_probability: float = 0.0
+    credit_risk_factors: List[str] = Field(default_factory=list)
+

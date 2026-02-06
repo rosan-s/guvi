@@ -1,59 +1,153 @@
-# Financial Health Assessment Tool
+# AI-Powered Financial Health Assessment Tool
 
-## Overview
-A full-stack platform for SMEs to assess financial health, creditworthiness, risks, and recommendations. Supports CSV/XLSX/PDF uploads, industry benchmarking, multilingual UI (English/Hindi), and mock banking integrations.
+## 🎯 Overview
+A cutting-edge, full-stack platform leveraging **machine learning** to deliver comprehensive financial analysis for SMEs. Combines traditional financial metrics with AI predictions, anomaly detection, risk scoring, and scenario analysis.
 
-## Tech Stack
-- Frontend: React + Vite
-- Backend: FastAPI + pandas
-- Database: SQLite (dev) / PostgreSQL (prod)
+**For:** Career Carnival Hackathon 2026 - AI Engineer Track
 
-## Setup
+## ✨ AI-Driven Features
 
-### 1) Database (choose one)
-- SQLite (dev):
-  - Copy `backend/.env.example` to `backend/.env`
-  - Set `DATABASE_URL=sqlite:///./finhealth.db`
-- PostgreSQL (prod):
-  - Use Docker Compose: `docker compose up -d`
-  - Set `DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/finhealth`
+✅ **3-Month Forecasting** - Predict revenue & expense trends using ML
+✅ **Anomaly Detection** - Identify fraud/errors automatically  
+✅ **Credit Risk Scoring** - Calculate default probability with ML  
+✅ **Scenario Analysis** - Pessimistic/Base/Optimistic planning  
+✅ **Smart Recommendations** - AI-powered, contextual advice  
+✅ **Industry Benchmarking** - 6 industry benchmarks with gap analysis
 
-### 2) Backend
-- Create virtual environment and install requirements:
-  - `pip install -r backend/requirements.txt`
-- Run API:
-  - `uvicorn backend.app.main:app --reload`
+[See Full Feature List →](FEATURES.md)
 
-### 3) Frontend
-- Install dependencies:
-  - `npm install` (in frontend)
-- Run dev server:
-  - `npm run dev` (in frontend)
+## 🏗️ Tech Stack
+- **Frontend:** React 18 + Vite + TailwindCSS-inspired
+- **Backend:** FastAPI + AsyncIO (high performance)
+- **Database:** SQLite (dev) / PostgreSQL (prod)
+- **ML:** scikit-learn, pandas, numpy, scipy
+- **Deployment:** Docker + Render
 
-## API
-- Default API key: `dev-key` (set in `backend/.env`)
-- Endpoints:
-  - `POST /analyze` (file upload)
-  - `POST /analyze-json` (JSON payload)
-  - `GET /integrations/bank-a`
-  - `GET /integrations/bank-b`
+## 🚀 Quick Start
 
-## Render Deployment (Blueprint)
-1. Push this repo to GitHub.
-2. In Render, create a new Blueprint and select this repo.
-3. Render uses render.yaml to provision:
-  - finhealth-api (FastAPI web service)
-  - finhealth-frontend (static site)
-  - finhealth-db (PostgreSQL)
-4. Update these in render.yaml (or Render dashboard):
-  - `CORS_ORIGINS` to your frontend URL
-  - `VITE_API_BASE_URL` to your backend URL
+### 1. Backend Setup
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
 
-## Security Notes
-- Use HTTPS/TLS in production for all traffic in transit.
-- Encrypt database storage and backups.
-- Rotate API keys and restrict CORS in production.
+### 2. Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-## Data Format
-Include columns like:
-- revenue, expenses, cash_in, cash_out, ar, ap, inventory, debt, tax
+### 3. Access Application
+Visit `http://localhost:5173`
+
+## 📊 How It Works
+
+1. **Upload** → CSV/XLSX/PDF file with financial data
+2. **Analyze** → FastAPI processes with ML models
+3. **Insights** → Get metrics, forecasts, risks, recommendations
+4. **Act** → Use insights for better financial decisions
+
+### Sample Data Format
+```csv
+revenue,expenses,cash_in,cash_out,ar,ap,inventory,debt,tax
+120000,90000,115000,88000,25000,18000,12000,15000,8000
+```
+
+## 🔗 API Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/health` | GET | Health check |
+| `/analyze` | POST | File upload analysis |
+| `/analyze-json` | POST | JSON payload analysis |
+| `/integrations/bank-a` | GET | Bank A integration |
+| `/integrations/bank-b` | GET | Bank B integration |
+
+**Headers:** `X-API-Key: dev-key` (development)
+
+## 📋 Configuration
+
+### Environment Variables
+```bash
+# backend/.env
+DATABASE_URL=sqlite:///./finhealth.db
+API_KEY=dev-key
+CORS_ORIGINS=["http://localhost:5173"]
+```
+
+### Database Options
+- **SQLite** (default, dev): File-based, zero setup
+- **PostgreSQL** (prod): Use `docker compose up -d`
+
+## 🐳 Docker Deployment
+
+```bash
+# Spin up PostgreSQL
+docker compose up -d
+
+# Backend will auto-connect
+uvicorn backend.app.main:app --reload
+```
+
+## 📈 Key Metrics Provided
+
+| Metric | Formula | Purpose |
+|--------|---------|---------|
+| **Risk Score** | Composite (0-100) | Overall financial health |
+| **Net Margin** | (Revenue - Expenses) / Revenue | Profitability |
+| **Current Ratio** | Current Assets / Current Liabilities | Liquidity |
+| **DSO Days** | (AR / Revenue) × 365 | Receivables efficiency |
+| **DSCR** | Net Cashflow / Debt | Debt service capability |
+| **Default Probability** | ML-based prediction | Credit risk |
+
+## 🎓 Innovation Highlights
+
+1. **ML Pipeline Integration** - 5 different algorithms working together
+2. **Real-time Predictions** - Sub-second inference on financial data
+3. **Practical Use Cases** - Solves real SME challenges
+4. **Production-Grade** - Error handling, security, monitoring
+5. **User-Centric Design** - Multilingual, intuitive UI
+6. **Scalable Architecture** - AsyncIO, connection pooling, optimized queries
+
+## 🔐 Security
+
+- ✅ API key authentication
+- ✅ CORS protection
+- ✅ Input validation (CSV/XLSX/PDF parsing)
+- ✅ SQL injection prevention (SQLAlchemy ORM)
+- ✅ TLS/HTTPS ready for production
+
+## 📱 Browser Support
+
+- Chrome, Firefox, Safari, Edge (latest versions)
+- Mobile responsive design
+
+## 🚢 Production Deployment
+
+### Option 1: Render (Recommended)
+1. Push repo to GitHub
+2. Connect to Render Blueprint
+3. Auto-deploys with PostgreSQL
+
+### Option 2: Traditional
+1. Set `DATABASE_URL` to PostgreSQL connection string
+2. Run: `uvicorn app.main:app --host 0.0.0.0 --port 8000`
+3. Serve frontend from CDN or nginx
+
+## 📞 Support & Documentation
+
+- **Features Deep Dive:** See [FEATURES.md](FEATURES.md)
+- **API Docs:** `http://localhost:8000/docs` (Swagger)
+- **Backend:** `backend/` directory
+- **Frontend:** `frontend/` directory
+
+## 📄 License
+
+This project is provided as-is for the hackathon.
+
+---
+
+**Built for Career Carnival Hackathon 2026** 🚀
+

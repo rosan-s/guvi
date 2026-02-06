@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import pdfplumber
 from fastapi import UploadFile, HTTPException
+from .ml_analytics import FinancialPredictor, AnomalyDetector, ScenarioAnalyzer, CreditRiskPredictor
 
 REQUIRED_FIELDS = ["revenue", "expenses"]
 
@@ -22,7 +23,7 @@ async def parse_upload_to_df(file: UploadFile) -> pd.DataFrame:
     content = await file.read()
 
     if name.endswith(".csv"):
-        return pd.read_csv(io.BytesIO(content))
+        return pd.read_csv(io.BytesIO(content), on_bad_lines="skip", engine="python")
     if name.endswith(".xlsx") or name.endswith(".xls"):
         return pd.read_excel(io.BytesIO(content))
     if name.endswith(".pdf"):
@@ -33,7 +34,7 @@ async def parse_upload_to_df(file: UploadFile) -> pd.DataFrame:
         lines = [ln for ln in text.splitlines() if "," in ln]
         if not lines:
             raise HTTPException(status_code=400, detail="PDF does not contain CSV-like data")
-        return pd.read_csv(io.StringIO("\n".join(lines)))
+        return pd.read_csv(io.StringIO("\n".join(lines)), on_bad_lines="skip", engine="python")
 
     raise HTTPException(status_code=400, detail="Unsupported file type")
 
@@ -100,7 +101,16 @@ def analyze_dataframe(df: pd.DataFrame, industry: str) -> dict:
 
     benchmarks = INDUSTRY_BENCHMARKS.get(industry, INDUSTRY_BENCHMARKS["Services"])
 
-    return {
+    # ML-based analytics
+    predictor = FinancialPredictor()
+    predictor.fit(df)
+    forecast = predictor.forecast(periods=3)
+
+    detector = AnomalyDetector()
+    detector.fit(df)
+    anomalies = detector.detect(df)
+
+    base_analysis = {
         "industry": industry,
         "revenue": revenue,
         "expenses": expenses,
@@ -114,6 +124,19 @@ def analyze_dataframe(df: pd.DataFrame, industry: str) -> dict:
         "creditworthiness": creditworthiness,
         "benchmarks": benchmarks,
         "flags": _risk_flags(net_margin, current_ratio, dso_days, dscr, benchmarks),
+    }
+
+    scenarios = ScenarioAnalyzer.analyze(base_analysis)
+    default_probability = CreditRiskPredictor.predict_default_probability(base_analysis)
+    credit_risk_factors = CreditRiskPredictor.get_risk_factors(base_analysis)
+
+    return {
+        **base_analysis,
+        "forecast": forecast,
+        "anomalies": anomalies,
+        "scenarios": scenarios,
+        "default_probability": default_probability,
+        "credit_risk_factors": credit_risk_factors,
     }
 
 
@@ -150,16 +173,49 @@ def _risk_flags(net_margin: float, current_ratio: float, dso_days: float, dscr: 
 
 def build_recommendations(analysis: dict) -> list[str]:
     recs = []
+    
+    # Profitability recommendations
     if analysis["net_margin"] < analysis["benchmarks"]["net_margin"]:
         recs.append("Review COGS and vendor contracts; negotiate bulk discounts.")
+    
+    # Liquidity recommendations
     if analysis["current_ratio"] < analysis["benchmarks"]["current_ratio"]:
         recs.append("Improve liquidity by tightening credit terms and accelerating collections.")
+    
+    # Receivables recommendations
     if analysis["dso_days"] > analysis["benchmarks"]["dso_days"]:
         recs.append("Introduce early payment incentives and automate invoice reminders.")
+    
+    # Debt service recommendations
     if analysis["dscr"] < 1.2:
         recs.append("Consider restructuring high-interest debt to improve cash flow.")
+    
+    # Credit & Risk recommendations
+    if analysis.get("default_probability", 0) > 30:
+        recs.append("High credit risk detected - focus on debt reduction and cash reserve building.")
+    
+    # Anomaly-based recommendations
+    if analysis.get("anomalies"):
+        recs.append("Unusual patterns detected in financial data - conduct detailed audit.")
+    
+    # Scenario recommendations
+    scenarios = analysis.get("scenarios", {})
+    if scenarios.get("pessimistic", {}).get("net_margin", 0) < 0:
+        recs.append("Prepare contingency plans; pessimistic scenario shows negative margins.")
+    
+    # General credit recommendations
     if analysis["risk_score"] >= 65:
         recs.append("Eligible for working capital lines or invoice discounting products.")
     else:
         recs.append("Focus on profitability and cashflow stabilization before new credit.")
-    return recs
+    
+    # Forecast-based recommendations
+    forecast = analysis.get("forecast", {})
+    if forecast.get("revenue") and len(forecast["revenue"]) > 0:
+        projected_growth = (forecast["revenue"][-1] - analysis["revenue"]) / max(analysis["revenue"], 1) * 100
+        if projected_growth > 10:
+            recs.append(f"Revenue growth trend detected (~{projected_growth:.1f}% over forecast period).")
+        elif projected_growth < -10:
+            recs.append(f"Revenue decline trend detected (~{projected_growth:.1f}%) - cost optimization urgent.")
+    
+    return recs[:8]  # Limit to top 8 recommendations
