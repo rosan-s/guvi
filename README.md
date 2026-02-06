@@ -5,6 +5,20 @@ A cutting-edge, full-stack platform leveraging **machine learning** to deliver c
 
 **For:** Career Carnival Hackathon 2026 - AI Engineer Track
 
+---
+
+## 🌐 Live Demo & Development
+
+### **Local Development** (Running Now)
+- **Frontend:** http://localhost:5173 ✅
+- **Backend API:** http://127.0.0.1:8000 ✅
+- **API Docs:** http://127.0.0.1:8000/docs
+
+### **Live Production Deployment**
+Coming soon! Deploy to [Railway](LIVE_DEPLOYMENT.md) for a public live website.
+
+---
+
 ## ✨ AI-Driven Features
 
 ✅ **3-Month Forecasting** - Predict revenue & expense trends using ML
@@ -29,8 +43,9 @@ A cutting-edge, full-stack platform leveraging **machine learning** to deliver c
 ```bash
 cd backend
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+python -m uvicorn app.main:app --reload
 ```
+**Backend running at:** `http://127.0.0.1:8000`
 
 ### 2. Frontend Setup
 ```bash
@@ -38,9 +53,10 @@ cd frontend
 npm install
 npm run dev
 ```
+**Frontend running at:** `http://localhost:5173`
 
 ### 3. Access Application
-Visit `http://localhost:5173`
+**👉 Open in browser:** [`http://localhost:5173`](http://localhost:5173)
 
 ## 📊 How It Works
 
