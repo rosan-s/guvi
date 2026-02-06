@@ -22,21 +22,29 @@ async def parse_upload_to_df(file: UploadFile) -> pd.DataFrame:
     name = (file.filename or "").lower()
     content = await file.read()
 
-    if name.endswith(".csv"):
-        return pd.read_csv(io.BytesIO(content), on_bad_lines="skip", engine="python")
-    if name.endswith(".xlsx") or name.endswith(".xls"):
-        return pd.read_excel(io.BytesIO(content))
-    if name.endswith(".pdf"):
-        text = ""
-        with pdfplumber.open(io.BytesIO(content)) as pdf:
-            for page in pdf.pages:
-                text += (page.extract_text() or "") + "\n"
-        lines = [ln for ln in text.splitlines() if "," in ln]
-        if not lines:
-            raise HTTPException(status_code=400, detail="PDF does not contain CSV-like data")
-        return pd.read_csv(io.StringIO("\n".join(lines)), on_bad_lines="skip", engine="python")
+    try:
+        if name.endswith(".csv"):
+            return pd.read_csv(io.BytesIO(content), on_bad_lines="skip", engine="python")
+        if name.endswith(".xlsx") or name.endswith(".xls"):
+            return pd.read_excel(io.BytesIO(content))
+        if name.endswith(".pdf"):
+            text = ""
+            with pdfplumber.open(io.BytesIO(content)) as pdf:
+                for page in pdf.pages:
+                    text += (page.extract_text() or "") + "\n"
+            lines = [ln for ln in text.splitlines() if "," in ln]
+            if not lines:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="PDF does not contain CSV-like data. Please upload a file with columns: revenue, expenses"
+                )
+            return pd.read_csv(io.StringIO("\n".join(lines)), on_bad_lines="skip", engine="python")
 
-    raise HTTPException(status_code=400, detail="Unsupported file type")
+        raise HTTPException(status_code=400, detail="Unsupported file type. Please upload CSV, Excel, or PDF")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to parse file: {str(e)}")
 
 
 def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -73,7 +81,11 @@ def analyze_dataframe(df: pd.DataFrame, industry: str) -> dict:
 
     missing = [f for f in REQUIRED_FIELDS if f not in df.columns]
     if missing:
-        raise HTTPException(status_code=400, detail=f"Missing required fields: {', '.join(missing)}")
+        available = list(df.columns)
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Missing required fields: {', '.join(missing)}. Found columns: {', '.join(available)}. Please include 'revenue' and 'expenses' columns."
+        )
 
     revenue = float(df["revenue"].sum())
     expenses = float(df["expenses"].sum())
