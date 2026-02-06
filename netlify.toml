@@ -1,0 +1,15 @@
+[build]
+  command = "cd frontend && npm install && npm run build"
+  publish = "frontend/dist"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[env]
+  [env.production]
+    VITE_API_BASE_URL = "https://finhealth-backend.onrender.com"
+  [env.development]
+    VITE_API_BASE_URL = "http://localhost:8000"
