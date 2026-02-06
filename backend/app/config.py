@@ -7,11 +7,11 @@ load_dotenv(_env_path)
 
 
 class Settings(BaseModel):
-    database_url: str = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:postgres@localhost:5432/finhealth")
+    database_url: str = os.getenv("DATABASE_URL", "sqlite:///finance.db")
     api_key: str = os.getenv("API_KEY", "dev-key")
     cors_origins: list[str] = [
         origin.strip()
-        for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
+        for origin in os.getenv("CORS_ORIGINS", "*").split(",")
         if origin.strip()
     ]
 
