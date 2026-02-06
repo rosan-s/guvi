@@ -60,15 +60,24 @@ const defaultSample = [
   { revenue: 135000, expenses: 98000, cash_in: 128000, cash_out: 92000, ar: 27000, ap: 20000, inventory: 13000, debt: 16000 }
 ];
 
-// Get API base URL - use Render backend URL in production, localhost in development
+// Get API base URL
 const getApiBase = () => {
+  // Use environment variable first (set by Render)
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
   }
-  // In production on Render, try to infer the backend URL from current location
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-    return `${window.location.origin}/api`;
+  
+  // For local development
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return "http://localhost:8000";
   }
+  
+  // For production on Render or other hosts
+  // Backend is on the same origin
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  
   return "http://localhost:8000";
 };
 

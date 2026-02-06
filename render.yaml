@@ -6,6 +6,10 @@ services:
     runtime: python-3.11
     buildCommand: pip install -r backend/requirements.txt
     startCommand: python -m uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    routes:
+      - path: /api/*
+        pathPrefix: /api
+        destination: /
     envVars:
       - key: API_KEY
         value: dev-key
