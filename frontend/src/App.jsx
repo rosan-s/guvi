@@ -50,7 +50,7 @@ const defaultSample = [
   { revenue: 135000, expenses: 98000, cash_in: 128000, cash_out: 92000, ar: 27000, ap: 20000, inventory: 13000, debt: 16000 }
 ];
 
-const apiBase = "http://localhost:8000";
+const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 export default function App() {
   const [language, setLanguage] = useState("en");

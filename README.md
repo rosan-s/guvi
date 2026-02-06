@@ -38,6 +38,17 @@ A full-stack platform for SMEs to assess financial health, creditworthiness, ris
   - `GET /integrations/bank-a`
   - `GET /integrations/bank-b`
 
+## Render Deployment (Blueprint)
+1. Push this repo to GitHub.
+2. In Render, create a new Blueprint and select this repo.
+3. Render uses render.yaml to provision:
+  - finhealth-api (FastAPI web service)
+  - finhealth-frontend (static site)
+  - finhealth-db (PostgreSQL)
+4. Update these in render.yaml (or Render dashboard):
+  - `CORS_ORIGINS` to your frontend URL
+  - `VITE_API_BASE_URL` to your backend URL
+
 ## Security Notes
 - Use HTTPS/TLS in production for all traffic in transit.
 - Encrypt database storage and backups.
