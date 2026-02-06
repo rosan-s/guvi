@@ -21,5 +21,8 @@ fastapi_app.add_middleware(
     allow_headers=["*"],
 )
 
+# Ensure routes work behind /api on Vercel
+fastapi_app.root_path = "/api"
+
 # Vercel expects ASGI app named 'app'
 app = fastapi_app
