@@ -5,14 +5,13 @@
   },
   "deploy": {
     "numReplicas": 1,
-    "startCommand": "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    "startCommand": "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
   },
   "plugins": [
     "postgresql"
   ],
   "variables": {
     "API_KEY": "dev-key",
-    "CORS_ORIGINS": "*",
-    "DATABASE_URL": "${{ Postgres.DATABASE_URL }}"
+    "CORS_ORIGINS": "*"
   }
 }
