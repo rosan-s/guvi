@@ -2,17 +2,20 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy everything
-COPY . .
+# Copy requirements first for better caching
+COPY backend/requirements.txt .
 
-# Install backend dependencies
-RUN pip install --no-cache-dir -r backend/requirements.txt
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy entire project
+COPY . .
 
 # Expose port
 EXPOSE 8000
 
-# Set working directory to backend
+# Set working directory
 WORKDIR /app/backend
 
-# Start backend
+# Run the app
 CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

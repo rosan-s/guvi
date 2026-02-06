@@ -1,21 +1,28 @@
 services:
   - type: web
-    name: finhealth-api
+    name: finhealth-backend
     env: python
     plan: free
-    buildCommand: cd backend && pip install -r requirements.txt
-    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    runtime: python-3.11
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python -m uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: API_KEY
         value: dev-key
-      - key: DATABASE_URL
-        fromDatabase:
-          name: finhealth-db
-          property: connectionString
       - key: CORS_ORIGINS
         value: "*"
 
-databases:
-  - name: finhealth-db
-    databaseName: finhealth
-    user: finhealth
+  - type: web
+    name: finhealth-frontend  
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    routes:
+      - path: /.*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          name: finhealth-backend
+          type: web
+          property: url
+
